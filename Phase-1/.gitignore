@@ -22,11 +22,9 @@ coverage.xml
 venv/
 ENV/
 env/
-.python-version
 
-# Claude / Agent Specific
-.claude/
-history/prompts/**/tmp_*
+
+
 
 # OS / Editor
 .vscode/

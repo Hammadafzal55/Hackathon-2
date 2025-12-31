@@ -1,0 +1,37 @@
+# Python build artifacts
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# Claude / Agent Specific
+.claude/
+history/prompts/**/tmp_*
+
+# OS / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

@@ -23,9 +23,6 @@ venv/
 ENV/
 env/
 
-
-
-
 # OS / Editor
 .vscode/
 .idea/

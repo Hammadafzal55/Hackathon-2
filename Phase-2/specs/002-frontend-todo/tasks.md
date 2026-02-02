@@ -66,8 +66,8 @@ description: "Task list for Todo Frontend Application implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T015 [P] [US1] Contract test for frontend API integration in frontend/tests/contract/test_api_contract.ts
-- [ ] T016 [P] [US1] Integration test for full task lifecycle in frontend/tests/integration/test_task_lifecycle.ts
+- [X] T015 [P] [US1] Contract test for frontend API integration in frontend/tests/contract/test_api_contract.ts
+- [X] T016 [P] [US1] Integration test for full task lifecycle in frontend/tests/integration/test_task_lifecycle.ts
 
 ### Implementation for User Story 1
 
@@ -98,16 +98,16 @@ description: "Task list for Todo Frontend Application implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T029 [P] [US2] Contract test for filter functionality in frontend/tests/contract/test_filter_contract.ts
-- [ ] T030 [P] [US2] Integration test for sorting functionality in frontend/tests/integration/test_sorting.ts
+- [X] T029 [P] [US2] Contract test for filter functionality in frontend/tests/contract/test_filter_contract.ts
+- [X] T030 [P] [US2] Integration test for sorting functionality in frontend/tests/integration/test_sorting.ts
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Enhance TaskList component with filter controls in frontend/src/components/TaskList.tsx
-- [ ] T032 [US2] Implement client-side filtering logic in frontend/src/lib/utils/taskFilters.ts
-- [ ] T033 [US2] Implement client-side sorting logic in frontend/src/lib/utils/taskSorters.ts
-- [ ] T034 [US2] Add filter and sort UI controls to task list in frontend/src/components/TaskList.tsx
-- [ ] T035 [US2] Add visual indicators for active filters and sorts
+- [X] T031 [P] [US2] Enhance TaskList component with filter controls in frontend/src/components/TaskList.tsx
+- [X] T032 [US2] Implement client-side filtering logic in frontend/src/lib/utils/taskFilters.ts
+- [X] T033 [US2] Implement client-side sorting logic in frontend/src/lib/utils/taskSorters.ts
+- [X] T034 [US2] Add filter and sort UI controls to task list in frontend/src/components/TaskList.tsx
+- [X] T035 [US2] Add visual indicators for active filters and sorts
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -123,16 +123,16 @@ description: "Task list for Todo Frontend Application implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T036 [P] [US3] Contract test for responsive behavior in frontend/tests/contract/test_responsive_contract.ts
-- [ ] T037 [P] [US3] Integration test for mobile layout in frontend/tests/integration/test_mobile_layout.ts
+- [X] T036 [P] [US3] Contract test for responsive behavior in frontend/tests/contract/test_responsive_contract.ts
+- [X] T037 [P] [US3] Integration test for mobile layout in frontend/tests/integration/test_mobile_layout.ts
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Enhance TaskList component with responsive layout in frontend/src/components/TaskList.tsx
-- [ ] T039 [US3] Enhance TaskItem component with responsive design in frontend/src/components/TaskItem.tsx
-- [ ] T040 [US3] Enhance TaskForm component with responsive design in frontend/src/components/TaskForm.tsx
-- [ ] T041 [US3] Add mobile-friendly touch targets and spacing
-- [ ] T042 [US3] Optimize layout for different screen sizes using Tailwind breakpoints
+- [X] T038 [P] [US3] Enhance TaskList component with responsive layout in frontend/src/components/TaskList.tsx
+- [X] T039 [US3] Enhance TaskItem component with responsive design in frontend/src/components/TaskItem.tsx
+- [X] T040 [US3] Enhance TaskForm component with responsive design in frontend/src/components/TaskForm.tsx
+- [X] T041 [US3] Add mobile-friendly touch targets and spacing
+- [X] T042 [US3] Optimize layout for different screen sizes using Tailwind breakpoints
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -143,10 +143,10 @@ description: "Task list for Todo Frontend Application implementation"
 **Purpose**: Improvements that affect multiple user stories
 
 - [X] T043 [P] Documentation updates in frontend/README.md
-- [ ] T044 Add accessibility attributes and keyboard navigation support
-- [ ] T045 Performance optimization for rendering and API calls
-- [ ] T046 [P] Additional unit tests in frontend/tests/unit/
-- [ ] T047 Error boundary implementation for graceful error handling
+- [X] T044 Add accessibility attributes and keyboard navigation support
+- [X] T045 Performance optimization for rendering and API calls
+- [X] T046 [P] Additional unit tests in frontend/tests/unit/
+- [X] T047 Error boundary implementation for graceful error handling
 - [X] T048 Run quickstart.md validation to ensure setup instructions work
 
 ---

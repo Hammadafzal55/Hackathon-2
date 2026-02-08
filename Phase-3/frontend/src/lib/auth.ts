@@ -3,7 +3,7 @@ import { jwtClient } from "better-auth/client/plugins";
 
 // Initialize Better Auth client with JWT plugin for FastAPI compatibility
 export const authClient = createAuthClient({
-  // basePath: "/api/auth", // Better Auth runs inside Next.js, not FastAPI
+  basePath: "/api/auth", // Better Auth runs inside Next.js, not FastAPI
   plugins: [
     jwtClient() // Enable JWT client to get JWT tokens for FastAPI
   ],

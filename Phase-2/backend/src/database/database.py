@@ -1,110 +1,128 @@
 """
-Database connection and session setup for the Todo backend.
-Uses SQLModel with asyncpg for PostgreSQL connectivity.
+Database connection and session setup.
+Async: asyncpg (FastAPI runtime)
+Sync: psycopg2 (Alembic migrations)
+Compatible with Neon + HuggingFace Spaces
 """
 
-from sqlmodel import create_engine, Session
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 from typing import AsyncGenerator
-from contextlib import asynccontextmanager
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
+from sqlmodel import Session, create_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine,
+)
+from sqlalchemy.orm import sessionmaker
 
-def remove_sslmode_param(database_url: str) -> str:
+
+
+# --------------------------------------------------
+# Utils
+# --------------------------------------------------
+
+def clean_async_database_url(database_url: str) -> str:
     """
-    Remove sslmode parameter from database URL as asyncpg doesn't accept it as a keyword argument.
-    Instead, asyncpg uses SSL context for secure connections.
+    Remove parameters not supported by asyncpg
+    (sslmode, channel_binding, etc.)
     """
     parsed = urlparse(database_url)
-    query_params = parse_qs(parsed.query)
+    query = parse_qs(parsed.query)
 
-    # Remove sslmode parameter if it exists
-    if 'sslmode' in query_params:
-        del query_params['sslmode']
+    # asyncpg does NOT support these
+    query.pop("sslmode", None)
+    query.pop("channel_binding", None)
 
-    # Reconstruct the query string without sslmode
-    new_query = urlencode(query_params, doseq=True)
+    clean_query = urlencode(query, doseq=True)
 
-    # Reconstruct the URL without sslmode
-    new_url = urlunparse((
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path,
-        parsed.params,
-        new_query,
-        parsed.fragment
-    ))
-
-    return new_url
+    return urlunparse(
+        (
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            clean_query,
+            parsed.fragment,
+        )
+    )
 
 
-# Get database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+# --------------------------------------------------
+# Base DATABASE URL (SYNC, from ENV)
+# --------------------------------------------------
 
-# Remove sslmode parameter for asyncpg compatibility
-CLEAN_DATABASE_URL = remove_sslmode_param(DATABASE_URL)
-
-
-# Async engine for PostgreSQL with Neon Serverless
-async_engine = create_async_engine(
-    CLEAN_DATABASE_URL,
-    echo=False,  # Set to True for SQL logging
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True,  # Validates connections before use
-    pool_recycle=300,    # Recycle connections every 5 minutes
+load_dotenv()  # Load environment variables from .env file
+DATABASE_URL = os.getenv(
+    "DATABASE_URL"
 )
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set in environment")
+# --------------------------------------------------
+# ASYNC DATABASE URL (runtime)
+# --------------------------------------------------
 
-# Sync engine for Alembic migrations
-sync_engine = create_engine(
-    CLEAN_DATABASE_URL.replace("+asyncpg", ""),
+ASYNC_DATABASE_URL = clean_async_database_url(
+    DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+)
+
+# --------------------------------------------------
+# Engines
+# --------------------------------------------------
+
+async_engine = create_async_engine(
+    ASYNC_DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
     pool_recycle=300,
 )
 
+sync_engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=300,
+)
 
-# Async session maker
+# --------------------------------------------------
+# Session makers
+# --------------------------------------------------
+
 AsyncSessionLocal = sessionmaker(
-    async_engine,
+    bind=async_engine,
     class_=AsyncSession,
-    expire_on_commit=False
+    expire_on_commit=False,
 )
 
-
-# Sync session maker for Alembic
 SyncSessionLocal = sessionmaker(
-    sync_engine,
-    autocommit=False,
+    bind=sync_engine,
     autoflush=False,
-    expire_on_commit=False
+    autocommit=False,
+    expire_on_commit=False,
 )
 
+# --------------------------------------------------
+# Dependencies
+# --------------------------------------------------
 
-async def get_async_session() -> AsyncGenerator[Session, None]:
-    """
-    Dependency to get async database session for FastAPI endpoints.
-    """
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
 
 def get_sync_session() -> Session:
-    """
-    Function to get sync database session for Alembic migrations.
-    """
-    session = SyncSessionLocal()
+    db = SyncSessionLocal()
     try:
-        yield session
+        return db
     finally:
-        session.close()
+        db.close()
 
 
-def get_database_url():
-    """
-    Returns the configured database URL.
-    """
+# --------------------------------------------------
+# Helpers
+# --------------------------------------------------
+
+def get_database_url() -> str:
     return DATABASE_URL

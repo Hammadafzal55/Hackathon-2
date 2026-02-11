@@ -20,4 +20,5 @@ flake8
 python-dotenv
 bcrypt
 pyjwt
-model-context-protocol
+mcp
+openai-agents

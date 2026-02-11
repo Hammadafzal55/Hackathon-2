@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     mcp_server_port: Optional[int] = Field(default=8001, alias="MCP_SERVER_PORT")
     mcp_log_level: str = Field(default="INFO", alias="MCP_LOG_LEVEL")
 
+    # AI Chat settings (Gemini provider)
+    ai_model: str = Field(default="gemini-2.5-flash", alias="AI_MODEL")
+    gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+    chat_context_window: int = Field(default=50, alias="CHAT_CONTEXT_WINDOW")
+    chat_max_message_length: int = Field(default=4000, alias="CHAT_MAX_MESSAGE_LENGTH")
+
     model_config = {"env_file": ".env", "case_sensitive": True}
 
 

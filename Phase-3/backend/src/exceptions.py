@@ -66,6 +66,43 @@ class ValidationException(TodoException):
         )
 
 
+class AIProviderError(TodoException):
+    """
+    Exception raised when the AI provider (Gemini) is unavailable or returns an error.
+    """
+
+    def __init__(self, message: str = "AI provider is temporarily unavailable"):
+        super().__init__(
+            message=message,
+            status_code=503
+        )
+
+
+class AIConfigurationError(TodoException):
+    """
+    Exception raised when AI configuration is invalid (e.g., missing API key).
+    """
+
+    def __init__(self, message: str = "AI service is not properly configured"):
+        super().__init__(
+            message=message,
+            status_code=500
+        )
+
+
+class ConversationNotFoundError(TodoException):
+    """
+    Exception raised when a conversation is not found or doesn't belong to the user.
+    """
+
+    def __init__(self, conversation_id: str = ""):
+        msg = f"Conversation not found" if not conversation_id else f"Conversation {conversation_id} not found"
+        super().__init__(
+            message=msg,
+            status_code=404
+        )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """
     Register exception handlers for the FastAPI application.
@@ -111,6 +148,36 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={
                 "detail": exc.message,
                 "error_code": "VALIDATION_ERROR"
+            }
+        )
+
+    @app.exception_handler(AIProviderError)
+    async def handle_ai_provider_error(request: Request, exc: AIProviderError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "detail": exc.message,
+                "error_code": "AI_PROVIDER_ERROR"
+            }
+        )
+
+    @app.exception_handler(AIConfigurationError)
+    async def handle_ai_configuration_error(request: Request, exc: AIConfigurationError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "detail": exc.message,
+                "error_code": "AI_CONFIGURATION_ERROR"
+            }
+        )
+
+    @app.exception_handler(ConversationNotFoundError)
+    async def handle_conversation_not_found(request: Request, exc: ConversationNotFoundError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "detail": exc.message,
+                "error_code": "CONVERSATION_NOT_FOUND"
             }
         )
 

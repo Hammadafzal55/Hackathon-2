@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from .database.init import initialize_database
-from .api.routes import tasks
+from .api.routes import tasks, chat
 from .config import get_settings
 from .exceptions import add_exception_handlers
 from .services.mcp_server import initialize_mcp_server
@@ -80,6 +80,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(tasks.router, prefix="/api", tags=["tasks"])
+app.include_router(chat.router, prefix="/api", tags=["chat"])
 
 
 @app.get("/")

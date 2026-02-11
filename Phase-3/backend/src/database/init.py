@@ -9,6 +9,12 @@ from sqlmodel import SQLModel
 import asyncio
 import logging
 
+# Import all models so SQLModel.metadata.create_all picks them up
+import src.models.task  # noqa: F401
+import src.models.user  # noqa: F401
+import src.models.conversation  # noqa: F401
+import src.models.message  # noqa: F401
+
 
 logger = logging.getLogger(__name__)
 

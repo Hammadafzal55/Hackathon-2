@@ -1,4 +1,5 @@
 import { Task, TaskCreate, TaskUpdate } from '../types';
+import type { ChatResponse, ConversationListResponse, ConversationDetailResponse } from '../types/chat';
 
 /**
  * Type guard to check if a value is a Task object
@@ -445,6 +446,110 @@ class ApiClient {
 
         clearTimeout(timeoutId);
         return this.handleResponse(response, isTask);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('API request timed out');
+        }
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Send a chat message and get AI response
+   */
+  sendChatMessage = async (message: string, conversationId?: string): Promise<ChatResponse> => {
+    return this.makeRequestWithRetry(async () => {
+      const headers = await this.getHeaders();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s for AI response
+
+      try {
+        const body: Record<string, unknown> = { message };
+        if (conversationId) body.conversation_id = conversationId;
+
+        const response = await fetch(`${this.baseUrl}/api/chat`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => `HTTP Error ${response.status}`);
+          throw new ApiError(`API Error: ${response.status} - ${errorText}`, response.status, response);
+        }
+
+        return await response.json() as ChatResponse;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Request timed out. The AI is taking too long to respond.');
+        }
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * List conversations for the current user
+   */
+  listConversations = async (limit = 20, offset = 0): Promise<ConversationListResponse> => {
+    return this.makeRequestWithRetry(async () => {
+      const headers = await this.getHeaders();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(
+          `${this.baseUrl}/api/conversations?limit=${limit}&offset=${offset}`,
+          { method: 'GET', headers, signal: controller.signal }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => `HTTP Error ${response.status}`);
+          throw new ApiError(`API Error: ${response.status} - ${errorText}`, response.status, response);
+        }
+
+        return await response.json() as ConversationListResponse;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('API request timed out');
+        }
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Get conversation detail with messages
+   */
+  getConversation = async (conversationId: string, limit = 50): Promise<ConversationDetailResponse> => {
+    return this.makeRequestWithRetry(async () => {
+      const headers = await this.getHeaders();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(
+          `${this.baseUrl}/api/conversations/${conversationId}?limit=${limit}`,
+          { method: 'GET', headers, signal: controller.signal }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => `HTTP Error ${response.status}`);
+          throw new ApiError(`API Error: ${response.status} - ${errorText}`, response.status, response);
+        }
+
+        return await response.json() as ConversationDetailResponse;
       } catch (error) {
         clearTimeout(timeoutId);
         if (error instanceof Error && error.name === 'AbortError') {

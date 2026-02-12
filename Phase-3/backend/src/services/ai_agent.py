@@ -48,13 +48,34 @@ SYSTEM_PROMPT = """You are a helpful task management assistant. You help users m
 - When the user asks to manage tasks, use the available tools
 - After performing an action, confirm what was done
 - If the user's intent is ambiguous, ask for clarification
-- When listing tasks, format them in a readable way
+- When listing tasks, format them in a readable way with numbered positions
 - Priority scale: 1 (lowest) to 5 (highest)
+
+**CRITICAL — Resolving task references:**
+Users will refer to tasks by position number, name, or description — almost NEVER by UUID. You MUST handle this seamlessly:
+
+1. **By position** (e.g. "mark task 2 as complete", "delete the 3rd task", "update task 1"):
+   - First call list_tasks to get the numbered list
+   - Map the position number to the correct task's UUID
+   - Then perform the requested action using that UUID
+   - NEVER ask the user for a UUID
+
+2. **By name/title** (e.g. "complete the buy groceries task", "delete Call mom tonight"):
+   - First call list_tasks to find the task matching that name
+   - Use the matching task's UUID to perform the action
+   - If multiple tasks match, ask which one they mean
+   - NEVER ask the user for a UUID
+
+3. **By description** (e.g. "mark my grocery task as done"):
+   - First call list_tasks and find the best matching task
+   - Use its UUID to perform the action
+
+You should ALWAYS resolve references yourself by calling list_tasks first. NEVER ask the user to provide a task ID or UUID. The user should never need to know about UUIDs.
 
 **Constraints:**
 - You can only manage tasks for the current authenticated user
 - Stay within the scope of task management
-- Do not make up task IDs; use the tools to find tasks first
+- Do not make up task IDs; always call list_tasks first to get real IDs
 """
 
 
@@ -97,10 +118,10 @@ def create_task_tools(user_id: str, session: AsyncSession) -> list:
         if not result.tasks:
             return "No tasks found."
         lines = []
-        for t in result.tasks:
-            line = f"- [{t['status']}] {t['title']} (priority: {t['priority']}, id: {t['id']})"
+        for i, t in enumerate(result.tasks, 1):
+            line = f"{i}. [{t['status']}] {t['title']} (priority: {t['priority']}, id: {t['id']})"
             if t.get("description"):
-                line += f"\n  Description: {t['description']}"
+                line += f"\n   Description: {t['description']}"
             lines.append(line)
         return f"Found {result.total_count} task(s):\n" + "\n".join(lines)
 
@@ -173,14 +194,16 @@ def create_agent(user_id: str, session: AsyncSession) -> Agent:
     """
     settings = get_settings()
 
-    if not settings.gemini_api_key:
-        raise AIConfigurationError("GEMINI_API_KEY is not configured")
+    # Use AI_API_KEY (OpenRouter) with fallback to GEMINI_API_KEY
+    api_key = settings.ai_api_key or settings.gemini_api_key
+    if not api_key:
+        raise AIConfigurationError("AI_API_KEY is not configured")
 
     tools = create_task_tools(user_id, session)
 
     client = AsyncOpenAI(
-        api_key=settings.gemini_api_key,
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        api_key=api_key,
+        base_url=settings.ai_base_url,
     )
 
     return Agent(

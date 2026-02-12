@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@/src/providers/AuthProvider';
 import GlassButton from '../LandingPage/GlassButton';
@@ -9,6 +10,7 @@ import GlassButton from '../LandingPage/GlassButton';
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, loading, signOut } = useAuth();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -44,8 +46,11 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <GlassButton variant="secondary" size="sm" href="/tasks">
+                  <GlassButton variant="secondary" size="sm" href="/tasks" className={pathname === '/tasks' ? 'ring-2 ring-blue-400' : ''}>
                     Tasks
+                  </GlassButton>
+                  <GlassButton variant="secondary" size="sm" href="/chat" className={pathname === '/chat' ? 'ring-2 ring-blue-400' : ''}>
+                    Chat
                   </GlassButton>
                   <GlassButton variant="primary" size="sm" onClick={handleSignOut}>
                     Sign Out
@@ -116,8 +121,13 @@ const Header = () => {
             ) : (
               <>
                 <div className="px-2 py-2">
-                  <GlassButton variant="secondary" size="sm" href="/tasks" className="w-full">
+                  <GlassButton variant="secondary" size="sm" href="/tasks" className={`w-full ${pathname === '/tasks' ? 'ring-2 ring-blue-400' : ''}`}>
                     Tasks
+                  </GlassButton>
+                </div>
+                <div className="px-2 py-2">
+                  <GlassButton variant="secondary" size="sm" href="/chat" className={`w-full ${pathname === '/chat' ? 'ring-2 ring-blue-400' : ''}`}>
+                    Chat
                   </GlassButton>
                 </div>
                 <div className="px-2 py-2">

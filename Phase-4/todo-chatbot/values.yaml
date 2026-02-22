@@ -1,0 +1,144 @@
+# =============================================================================
+# Todo Chatbot - Helm Chart Values
+# Full-stack: Next.js 16 Frontend + FastAPI Backend
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# FRONTEND (Next.js 16 + React 19 + Tailwind CSS 4 + Better Auth)
+# ---------------------------------------------------------------------------
+frontend:
+  replicaCount: 1
+
+  image:
+    repository: hackathon-frontend
+    tag: "latest"
+    pullPolicy: Never  # Images are loaded locally into minikube
+
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30300
+
+  env:
+    HOSTNAME: "0.0.0.0"
+    PORT: "3000"
+    NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:8000"
+    BETTER_AUTH_URL: "http://localhost:3000"
+    NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+    BETTER_AUTH_SECRET: "VgbXeqU6dZosXavawsbAMstc161xPbsS"
+    DATABASE_URL: "postgresql://neondb_owner:npg_fWz74dUgLKYC@ep-nameless-flower-ahcktvsg-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    NEXT_PUBLIC_OPENAI_DOMAIN_KEY: "domain_pk_698d5fab44608194a5729b461df8e2620295f2b87ce7054c"
+
+  livenessProbe:
+    tcpSocket:
+      port: 3000
+    initialDelaySeconds: 40
+    periodSeconds: 15
+    failureThreshold: 3
+
+  readinessProbe:
+    tcpSocket:
+      port: 3000
+    initialDelaySeconds: 35
+    periodSeconds: 10
+    failureThreshold: 3
+
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 512Mi
+    # requests:
+    #   cpu: 250m
+    #   memory: 256Mi
+
+# ---------------------------------------------------------------------------
+# BACKEND (Python FastAPI + SQLModel + Neon Serverless PostgreSQL)
+# ---------------------------------------------------------------------------
+backend:
+  replicaCount: 1
+
+  image:
+    repository: hackathon-backend
+    tag: "latest"
+    pullPolicy: Never  # Images are loaded locally into minikube
+
+  service:
+    type: NodePort
+    port: 8000
+    nodePort: 30800
+
+  env:
+    DATABASE_URL: "postgresql://neondb_owner:npg_fWz74dUgLKYC@ep-nameless-flower-ahcktvsg-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    BETTER_AUTH_SECRET: "VgbXeqU6dZosXavawsbAMstc161xPbsS"
+    JWT_SECRET_KEY: "VgbXeqU6dZosXavawsbAMstc161xPbsS"
+    AI_MODEL: "z-ai/glm-4.5-air:free"
+    AI_API_KEY: "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"
+    AI_BASE_URL: "https://openrouter.ai/api/v1"
+    CHAT_CONTEXT_WINDOW: "50"
+    CHAT_MAX_MESSAGE_LENGTH: "4000"
+
+  livenessProbe:
+    tcpSocket:
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    failureThreshold: 3
+
+  readinessProbe:
+    tcpSocket:
+      port: 8000
+    initialDelaySeconds: 25
+    periodSeconds: 10
+    failureThreshold: 3
+
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 512Mi
+    # requests:
+    #   cpu: 250m
+    #   memory: 256Mi
+
+# ---------------------------------------------------------------------------
+# COMMON
+# ---------------------------------------------------------------------------
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Ingress — disabled by default for local minikube
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: todo-chatbot.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Gateway API HTTPRoute — disabled by default
+httpRoute:
+  enabled: false

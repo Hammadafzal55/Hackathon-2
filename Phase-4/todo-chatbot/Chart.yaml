@@ -1,0 +1,35 @@
+apiVersion: v2
+name: todo-chatbot
+description: >
+  A full-stack Todo application with an AI-powered chatbot assistant.
+  Frontend built with Next.js 16 (App Router), React 19, Tailwind CSS 4, and Better Auth for authentication.
+  Backend built with Python FastAPI, SQLModel ORM, and Neon Serverless PostgreSQL.
+  AI chat powered by OpenRouter API (GLM-4.5-Air model) with OpenAI Agents SDK and MCP server integration.
+  Supports user signup/signin with JWT-based authentication, task management (CRUD), and real-time AI chat.
+
+type: application
+
+# Chart version — increment on every chart change
+version: 0.1.0
+
+# Application version
+appVersion: "1.0.0"
+
+keywords:
+  - todo
+  - chatbot
+  - nextjs
+  - fastapi
+  - ai
+  - postgresql
+  - better-auth
+
+home: https://github.com/your-org/todo-chatbot
+
+maintainers:
+  - name: Hackathon Team
+    email: team@example.com
+
+annotations:
+  category: FullStack
+  licenses: MIT

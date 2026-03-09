@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: Todo Backend Service API
+  description: REST API for managing user tasks
+  version: 1.0.0
+paths:
+  /api/{user_id}/tasks:
+    get:
+      summary: List all tasks for a specific user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user whose tasks to retrieve
+          schema:
+            type: integer
+        - name: completed
+          in: query
+          required: false
+          description: Filter tasks by completion status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A list of tasks for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '404':
+          description: User not found
+    post:
+      summary: Create a new task for a user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user creating the task
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
+  /api/{user_id}/tasks/{id}:
+    get:
+      summary: Get a specific task by ID
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: The ID of the task to retrieve
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+    put:
+      summary: Update a specific task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: The ID of the task to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+        '404':
+          description: Task not found
+    delete:
+      summary: Delete a specific task
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: The ID of the task to delete
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Task deleted successfully
+        '404':
+          description: Task not found
+  /api/{user_id}/tasks/{id}/complete:
+    patch:
+      summary: Toggle a task's completion status
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          description: The ID of the task to toggle
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task completion status toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+        - user_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the task
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the task
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Optional description of the task
+        completed:
+          type: boolean
+          description: Whether the task is completed
+        user_id:
+          type: integer
+          description: ID of the user who owns the task
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was last updated
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Title of the task
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Optional description of the task
+        completed:
+          type: boolean
+          default: false
+          description: Whether the task is initially completed
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Updated title of the task
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Updated description of the task
+        completed:
+          type: boolean
+          description: Updated completion status of the task

@@ -129,7 +129,7 @@
 - [x] T023 Verify statelessness: confirm no module-level mutable state in `backend/src/services/ai_agent.py` — agent and client created fresh per request, no cached sessions or conversations
 - [x] T024 Verify user isolation: confirm all DB queries in `backend/src/api/routes/chat.py` filter by user_id — no endpoint returns data belonging to a different user
 - [x] T025 Validate all endpoints match contracts/chat-api.yaml: verify request/response schemas, HTTP status codes, and error response formats match the OpenAPI spec
-- [ ] T026 Run quickstart.md validation: follow steps in `specs/006-ai-chat-api/quickstart.md` to verify end-to-end setup and first chat message flow
+- [x] T026 Run quickstart.md validation: follow steps in `specs/006-ai-chat-api/quickstart.md` to verify end-to-end setup and first chat message flow
 
 ---
 

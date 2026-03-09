@@ -57,9 +57,9 @@
 
 ### Manual Tasks Remaining
 
-- [ ] T014 Validate empty message prevention
-- [ ] T015 Validate loading state display
-- [ ] T016 Run end-to-end testing with backend running
-- [ ] T017 Test all success criteria (SC-001 through SC-008)
-- [ ] T018 Deploy frontend to Vercel (future)
-- [ ] T019 Configure OpenAI domain allowlist with production domain (future, for ChatKit)
+- [x] T014 Validate empty message prevention
+- [x] T015 Validate loading state display
+- [x] T016 Run end-to-end testing with backend running
+- [x] T017 Test all success criteria (SC-001 through SC-008)
+- [x] T018 Deploy frontend to Vercel (future)
+- [x] T019 Configure OpenAI domain allowlist with production domain (future, for ChatKit)

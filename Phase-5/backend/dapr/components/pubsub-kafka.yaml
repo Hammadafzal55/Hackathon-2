@@ -1,0 +1,28 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      secretKeyRef:
+        name: flowtodo-secrets
+        key: KAFKA_BROKERS
+    - name: authType
+      value: "oidc"
+    - name: saslMechanism
+      value: "PLAIN"
+    - name: saslUsername
+      secretKeyRef:
+        name: flowtodo-secrets
+        key: KAFKA_API_KEY
+    - name: saslPassword
+      secretKeyRef:
+        name: flowtodo-secrets
+        key: KAFKA_API_SECRET
+    - name: consumerGroup
+      value: "flowtodo-consumers"
+    - name: disableTls
+      value: "false"

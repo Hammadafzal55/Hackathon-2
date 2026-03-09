@@ -1,0 +1,60 @@
+========================================================
+  Todo Chatbot — Deployed Successfully!
+  Next.js 16 Frontend + FastAPI Backend
+========================================================
+
+⚠️  IMPORTANT — Load images into minikube before accessing:
+
+    minikube image load hackathon-frontend:latest
+    minikube image load hackathon-backend:latest
+
+Then restart the pods if they are in ImagePullBackOff:
+
+    kubectl rollout restart deployment/{{ include "todo-chatbot.fullname" . }}-frontend
+    kubectl rollout restart deployment/{{ include "todo-chatbot.fullname" . }}-backend
+
+--------------------------------------------------------
+  ACCESS YOUR APPLICATION
+--------------------------------------------------------
+
+Get minikube IP:
+
+    export MINIKUBE_IP=$(minikube ip)
+
+Frontend (Next.js):
+    echo "Frontend: http://$MINIKUBE_IP:{{ .Values.frontend.service.nodePort }}"
+
+Backend (FastAPI + Swagger):
+    echo "Backend:  http://$MINIKUBE_IP:{{ .Values.backend.service.nodePort }}"
+    echo "API Docs: http://$MINIKUBE_IP:{{ .Values.backend.service.nodePort }}/docs"
+
+OR use port-forwarding (recommended for local dev):
+
+    kubectl port-forward svc/{{ include "todo-chatbot.fullname" . }}-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }} &
+    kubectl port-forward svc/{{ include "todo-chatbot.fullname" . }}-backend {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }} &
+
+    Frontend → http://localhost:{{ .Values.frontend.service.port }}
+    Backend  → http://localhost:{{ .Values.backend.service.port }}
+    API Docs → http://localhost:{{ .Values.backend.service.port }}/docs
+
+--------------------------------------------------------
+  CHECK POD STATUS
+--------------------------------------------------------
+
+    kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+    kubectl get svc  -l app.kubernetes.io/instance={{ .Release.Name }}
+
+View logs:
+
+    kubectl logs -l app.kubernetes.io/component=frontend --tail=50
+    kubectl logs -l app.kubernetes.io/component=backend  --tail=50
+
+--------------------------------------------------------
+  UPGRADE / UNINSTALL
+--------------------------------------------------------
+
+Upgrade:
+    helm upgrade {{ .Release.Name }} ./todo-chatbot -f values-local.yaml
+
+Uninstall:
+    helm uninstall {{ .Release.Name }}

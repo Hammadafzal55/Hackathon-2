@@ -1,0 +1,199 @@
+# UI Component Contracts: UI Enhancement for Todo Application
+
+## Overview
+API contracts for UI components and their interfaces. Since this is a UI enhancement feature, the contracts focus on component interfaces and styling contracts rather than traditional API endpoints.
+
+## Component Interfaces
+
+### Header Component Contract
+
+#### Interface Definition
+```
+HeaderComponent(props: {
+  isAuthenticated: boolean,
+  onAuthAction: () => void,
+  onThemeToggle: () => void,
+  appName: string
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Displays FlowTodo branding as specified in requirements (FR-001)
+- Shows different buttons based on authentication state (FR-002)
+- Includes theme toggle for light/dark mode (FR-006)
+- Remains persistent across all pages
+
+#### Input Validation
+- `isAuthenticated` must be a boolean value
+- `onAuthAction` must be a callable function
+- `onThemeToggle` must be a callable function
+- `appName` must be a string
+
+#### Styling Contract
+- Height: 60px minimum
+- Background: Theme-appropriate background with subtle gradient
+- Padding: 1rem on sides
+- Shadow: Subtle bottom shadow for depth
+- Responsive: Collapses appropriately on mobile
+
+### Landing Page Hero Component Contract
+
+#### Interface Definition
+```
+HeroSectionComponent(props: {
+  tagline: string,
+  description: string,
+  primaryButton: ButtonProps,
+  secondaryButton: ButtonProps
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Displays centered tagline as specified in requirements (FR-003)
+- Shows detailed descriptive text below tagline
+- Provides glassmorphism-style buttons (FR-004)
+- Includes smooth transitions and animations (FR-007)
+
+#### Input Validation
+- `tagline` must be a string
+- `description` must be a string
+- Button props must conform to ButtonProps interface
+
+#### Styling Contract
+- Centered layout with max-width container
+- Typography: Large heading with clear hierarchy
+- Buttons: Glassmorphism effect with proper hover states
+- Background: Subtle gradient or animated background
+- Padding: Generous spacing for visual appeal
+
+### Task Form Component Contract
+
+#### Interface Definition
+```
+TaskFormComponent(props: {
+  onSubmit: (taskData: TaskFormData) => void,
+  onCancel?: () => void,
+  initialData?: Partial<TaskFormData>,
+  className?: string
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Enhanced UI with improved visual hierarchy (FR-010)
+- Proper form validation and feedback
+- Consistent styling with overall design
+- Keyboard accessible
+
+#### Input Validation
+- `onSubmit` must be a callable function accepting TaskFormData
+- `onCancel` must be a callable function if provided
+- `initialData` must be a partial TaskFormData object if provided
+
+#### Styling Contract
+- Background: Theme-appropriate with subtle border
+- Input fields: Consistent styling with proper spacing
+- Buttons: Consistent with overall button design
+- Focus states: Visible and accessible
+
+### Task Card Component Contract
+
+#### Interface Definition
+```
+TaskCardComponent(props: {
+  task: Task,
+  onEdit?: (taskId: string) => void,
+  onDelete?: (taskId: string) => void,
+  onComplete?: (taskId: string, completed: boolean) => void,
+  className?: string
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Redesigned with modern visual elements (FR-011)
+- Shows task information with clear visual hierarchy
+- Interactive elements with proper feedback
+- Consistent styling with overall design
+
+#### Input Validation
+- `task` must be a valid Task object
+- Optional callback functions must be callable if provided
+
+#### Styling Contract
+- Card background: Theme-appropriate with subtle shadow
+- Content: Clear typography hierarchy
+- Interactive elements: Proper hover and active states
+- Status indicators: Color-coded as per design
+
+## Theme System Contract
+
+### Theme Provider Interface
+```
+ThemeProvider(props: {
+  children: React.ReactNode,
+  initialTheme?: 'light' | 'dark'
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Provides theme context to all child components (FR-006)
+- Handles theme switching between light and dark modes
+- Updates all components when theme changes
+- Persists user preference
+
+#### Input Validation
+- `children` must be valid React nodes
+- `initialTheme` must be 'light' or 'dark' if provided
+
+#### Styling Contract
+- Defines CSS custom properties for all theme colors
+- Provides consistent color mapping across all components
+- Ensures WCAG 2.1 AA compliance for all color combinations
+
+## Animation and Interaction Contracts
+
+### Transition System
+Components must implement smooth transitions as specified in requirements (FR-007):
+
+- Hover states: 200ms ease-in-out transition
+- Focus states: 150ms ease-in transition
+- Active states: 100ms ease-out transition
+- Page transitions: 300ms ease-in-out transition
+
+### Accessibility Contract
+All components must meet accessibility requirements (FR-009):
+
+- Keyboard navigation support
+- Focus indicator visibility
+- ARIA attributes for interactive elements
+- Screen reader compatibility
+
+## Responsive Design Contracts
+
+### Breakpoint Specifications
+- Mobile: 0px - 640px
+- Tablet: 640px - 1024px
+- Desktop: 1024px+
+
+### Component Responsiveness
+Each component must adapt to different screen sizes while maintaining functionality and aesthetic appeal.
+
+## Footer Component Contract
+
+#### Interface Definition
+```
+FooterComponent(props: {
+  copyrightText: string,
+  additionalInfo?: string
+}): JSX.Element
+```
+
+#### Expected Behavior
+- Minimal footer design with horizontal divider (FR-014)
+- Displays copyright and creator information
+- Consistent styling across all pages
+
+#### Styling Contract
+- Divider: Subtle horizontal line
+- Text: Appropriate size and color for footer
+- Padding: Adequate spacing from content
+- Background: Theme-consistent background

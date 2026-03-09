@@ -1,0 +1,18 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: "localhost:6379"
+    - name: redisPassword
+      value: ""
+    - name: consumerGroup
+      value: "flowtodo-consumers"
+    - name: processingTimeout
+      value: "30s"
+    - name: maxRetries
+      value: "3"

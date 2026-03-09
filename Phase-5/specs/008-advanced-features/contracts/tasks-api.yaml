@@ -1,0 +1,495 @@
+openapi: "3.0.3"
+info:
+  title: Tasks API (Enhanced — spec 008)
+  version: "2.0.0"
+  description: >
+    Enhanced task management endpoints with search, filter, sort,
+    tags, recurrence, and reminder support.
+
+paths:
+  /api/tasks:
+    get:
+      summary: List tasks with search, filter, and sort
+      description: >
+        Returns tasks for the authenticated user.
+        Supports full-text search, multi-criteria filtering,
+        tag filtering, due date range, and multi-field sorting.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Keyword to match against title, description, and tags (case-insensitive)
+          required: false
+          schema:
+            type: string
+            maxLength: 200
+        - name: status
+          in: query
+          description: Filter by one or more statuses (comma-separated)
+          required: false
+          schema:
+            type: string
+            example: "pending,in_progress"
+        - name: priority
+          in: query
+          description: Filter by priority level (1-5, comma-separated for multiple)
+          required: false
+          schema:
+            type: string
+            example: "4,5"
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated; task must have ALL specified tags)
+          required: false
+          schema:
+            type: string
+            example: "work,urgent"
+        - name: due_before
+          in: query
+          description: Filter tasks with due_date before this ISO datetime
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: due_after
+          in: query
+          description: Filter tasks with due_date after this ISO datetime
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: sort_by
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [due_date, priority, created_at, title]
+            default: created_at
+        - name: sort_dir
+          in: query
+          description: Sort direction
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated list of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TaskRead"
+                  total_count:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      summary: Create a new task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskCreate"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRead"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/tasks/{task_id}:
+    get:
+      summary: Get a specific task
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRead"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      summary: Update a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRead"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      summary: Delete a task and all associated reminders
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/tasks/{task_id}/complete:
+    patch:
+      summary: Toggle task completion (also cancels pending reminders)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRead"
+
+  /api/tasks/{task_id}/reminders:
+    get:
+      summary: List reminders for a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReminderRead"
+
+    post:
+      summary: Add a reminder to a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReminderCreate"
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderRead"
+        "400":
+          description: Task has no due date, or reminder time is in the past
+
+  /api/reminders/{reminder_id}:
+    delete:
+      summary: Delete a specific reminder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reminder_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/tags:
+    get:
+      summary: Get all unique tags used by the current user (for autocomplete)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: ["work", "personal", "urgent"]
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    RecurrenceRule:
+      type: object
+      required: [pattern]
+      properties:
+        pattern:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        interval:
+          type: integer
+          minimum: 1
+          default: 1
+          description: Every N occurrences of the pattern
+        end_condition:
+          type: string
+          enum: [never, after_n, by_date]
+          default: never
+        end_after_n:
+          type: integer
+          nullable: true
+          description: Stop after this many instances (when end_condition = after_n)
+        end_by_date:
+          type: string
+          format: date
+          nullable: true
+          description: Stop after this date (when end_condition = by_date)
+
+    ReminderCreate:
+      type: object
+      required: [lead_time_minutes]
+      properties:
+        lead_time_minutes:
+          type: integer
+          enum: [15, 60, 180, 1440, 2880]
+          description: "15=15min, 60=1hr, 180=3hr, 1440=1day, 2880=2days before due date"
+
+    ReminderRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+        lead_time_minutes:
+          type: integer
+        fire_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, sent, cancelled]
+        created_at:
+          type: string
+          format: date-time
+
+    TaskCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed, cancelled]
+          default: pending
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 1
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          default: []
+          description: List of tag strings (deduplicated, max 20 tags)
+        recurrence_rule:
+          $ref: "#/components/schemas/RecurrenceRule"
+          nullable: true
+        reminders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReminderCreate"
+          default: []
+          description: Reminders to create with this task (requires due_date)
+
+    TaskUpdate:
+      type: object
+      description: All fields optional; only provided fields are updated
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed, cancelled]
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        recurrence_rule:
+          $ref: "#/components/schemas/RecurrenceRule"
+          nullable: true
+
+    TaskRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+        priority:
+          type: integer
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        recurrence_rule:
+          $ref: "#/components/schemas/RecurrenceRule"
+          nullable: true
+        recurrence_parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        next_occurrence:
+          type: string
+          format: date-time
+          nullable: true
+        reminders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReminderRead"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+    NotFound:
+      description: Resource not found or does not belong to the authenticated user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string

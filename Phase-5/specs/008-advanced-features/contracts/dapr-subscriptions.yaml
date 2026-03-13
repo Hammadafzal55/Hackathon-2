@@ -1,0 +1,151 @@
+# Dapr Subscription & Binding Contracts (spec 008)
+#
+# This document defines the Dapr pub/sub subscriptions and cron binding
+# endpoints that the FastAPI backend must expose.
+# Dapr sidecar calls these endpoints automatically.
+
+# ─────────────────────────────────────────────────────────────────────
+# SUBSCRIPTION REGISTRY (GET /dapr/subscribe)
+# ─────────────────────────────────────────────────────────────────────
+# Dapr calls GET /dapr/subscribe at startup to discover topics.
+# Response shape:
+
+subscriptions:
+  - pubsubname: pubsub            # matches Dapr component name
+    topic: task-events            # topic published to on task mutations
+    routes:
+      default: /task-events       # POST handler on the app
+
+# ─────────────────────────────────────────────────────────────────────
+# TOPIC: task-events
+# Published: after every task create / update / complete / delete
+# ─────────────────────────────────────────────────────────────────────
+
+task_event_schema:
+  type: object
+  required: [event_type, task_id, user_id, timestamp]
+  properties:
+    event_type:
+      type: string
+      enum: [task.created, task.updated, task.completed, task.deleted]
+    task_id:
+      type: string
+      format: uuid
+    user_id:
+      type: string
+    timestamp:
+      type: string
+      format: date-time
+    changed_fields:
+      type: array
+      items:
+        type: string
+      description: List of field names that were modified (for task.updated)
+    has_recurrence:
+      type: boolean
+      description: True if task has a recurrence_rule set
+    has_reminders:
+      type: boolean
+      description: True if task has pending reminders
+
+# Handler endpoint: POST /task-events
+# Purpose: Logs event; can trigger reminder/recurrence side-effects
+# Must return HTTP 200 (Dapr acknowledgment)
+# Idempotency: handler must be safe to call multiple times (at-least-once delivery)
+
+task_events_handler:
+  method: POST
+  path: /task-events
+  request_body:
+    data: <task_event_schema above (inside Dapr CloudEvent envelope)>
+  response:
+    status: 200
+    body:
+      status: SUCCESS
+
+# ─────────────────────────────────────────────────────────────────────
+# CRON BINDING: check-reminders
+# Component: cron-reminders (bindings.cron, @every 5m)
+# ─────────────────────────────────────────────────────────────────────
+
+cron_reminders_handler:
+  method: POST
+  path: /cron/check-reminders
+  description: >
+    Dapr invokes this every 5 minutes.
+    Handler queries: SELECT * FROM reminders WHERE status='pending' AND fire_at <= NOW()
+    For each due reminder:
+      1. Create a Notification record for the user
+      2. Update reminder.status = 'sent'
+    Returns HTTP 200 to Dapr.
+  request_body:
+    metadata:
+      triggeredTime: "<ISO datetime>"
+  response:
+    status: 200
+    body:
+      processed: <integer count of reminders processed>
+
+# ─────────────────────────────────────────────────────────────────────
+# CRON BINDING: generate-recurrences
+# Component: cron-recurrences (bindings.cron, @every 5m)
+# ─────────────────────────────────────────────────────────────────────
+
+cron_recurrences_handler:
+  method: POST
+  path: /cron/generate-recurrences
+  description: >
+    Dapr invokes this every 5 minutes.
+    Handler queries:
+      SELECT * FROM tasks
+      WHERE recurrence_rule IS NOT NULL
+        AND next_occurrence <= NOW()
+        AND (end conditions not met)
+    For each due recurring task:
+      1. Create a new Task row (copy of parent, new due_date, status=pending,
+         recurrence_parent_id = parent task id)
+         Uses INSERT ... ON CONFLICT DO NOTHING for idempotency
+      2. Compute and update parent task.next_occurrence
+    Returns HTTP 200 to Dapr.
+  request_body:
+    metadata:
+      triggeredTime: "<ISO datetime>"
+  response:
+    status: 200
+    body:
+      generated: <integer count of task instances created>
+
+# ─────────────────────────────────────────────────────────────────────
+# DAPR COMPONENT FILES (reference — actual files in dapr/components/)
+# ─────────────────────────────────────────────────────────────────────
+
+dapr_components:
+  - file: dapr/components/pubsub-redis.yaml
+    type: pubsub.redis
+    name: pubsub
+    use: default local/dev broker (Redis Streams)
+
+  - file: dapr/components/pubsub-kafka.yaml
+    type: pubsub.kafka
+    name: pubsub
+    use: cloud deployment (Confluent Cloud) — swap in place of pubsub-redis.yaml
+
+  - file: dapr/components/statestore.yaml
+    type: state.postgresql
+    name: statestore
+    use: Dapr state store (reuses Neon PostgreSQL)
+
+  - file: dapr/components/cron-reminders.yaml
+    type: bindings.cron
+    name: cron-reminders
+    schedule: "@every 5m"
+
+  - file: dapr/components/cron-recurrences.yaml
+    type: bindings.cron
+    name: cron-recurrences
+    schedule: "@every 5m"
+
+  - file: dapr/components/secretstore.yaml
+    type: secretstores.kubernetes
+    name: secretstore
+    use: Kubernetes secrets for API keys, DB credentials

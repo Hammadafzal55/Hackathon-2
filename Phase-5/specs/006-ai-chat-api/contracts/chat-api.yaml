@@ -1,0 +1,308 @@
+openapi: "3.1.0"
+info:
+  title: AI Chat API
+  version: "1.0.0"
+  description: |
+    Stateless conversational chat API for natural language task management.
+    User identity comes from JWT token (same pattern as existing /api/tasks endpoints).
+    No user_id in URL path — follows existing backend convention.
+
+paths:
+  /api/chat:
+    post:
+      operationId: sendChatMessage
+      summary: Send a chat message and receive AI response
+      description: |
+        Accepts a natural language message, loads conversation history from the database,
+        runs the AI agent with MCP tools, persists all messages, and returns the response.
+        Fully stateless - no server-side memory between requests.
+        User is identified from JWT token via Depends(get_current_user_id).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Successful AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Invalid request (empty message, malformed input)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication failed (missing/invalid/expired JWT)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Conversation not found (invalid conversation_id)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error (AI provider failure, database error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI model provider temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - bearerAuth: []
+
+  /api/conversations:
+    get:
+      operationId: listConversations
+      summary: List user's conversations
+      description: |
+        Returns all conversations for the authenticated user, ordered by most recent activity.
+        User is identified from JWT token.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationListResponse"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - bearerAuth: []
+
+  /api/conversations/{conversation_id}:
+    get:
+      operationId: getConversation
+      summary: Get conversation with message history
+      description: |
+        Returns a conversation and its message history for the authenticated user.
+        Verifies the conversation belongs to the authenticated user.
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+          description: Maximum number of messages to return
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetailResponse"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Conversation not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Better Auth JWT token
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: Natural language message from the user
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            Existing conversation ID to continue. If null or omitted,
+            a new conversation is created.
+
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - message
+        - tool_calls
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: The conversation this message belongs to
+        message:
+          type: string
+          description: AI assistant's text response
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCallInfo"
+          description: List of MCP tools invoked during processing (empty if none)
+
+    ToolCallInfo:
+      type: object
+      required:
+        - tool_name
+        - success
+      properties:
+        tool_name:
+          type: string
+          description: Name of the MCP tool that was called
+          enum:
+            - add_task
+            - list_tasks
+            - update_task
+            - complete_task
+            - delete_task
+        arguments:
+          type: object
+          description: Arguments passed to the tool
+        result:
+          type: string
+          description: Tool execution result summary
+        success:
+          type: boolean
+          description: Whether the tool call succeeded
+
+    ConversationListResponse:
+      type: object
+      required:
+        - conversations
+        - total_count
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationSummary"
+        total_count:
+          type: integer
+
+    ConversationSummary:
+      type: object
+      required:
+        - id
+        - title
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+
+    ConversationDetailResponse:
+      type: object
+      required:
+        - conversation
+        - messages
+      properties:
+        conversation:
+          $ref: "#/components/schemas/ConversationSummary"
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageInfo"
+
+    MessageInfo:
+      type: object
+      required:
+        - id
+        - role
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant, tool]
+        content:
+          type: string
+          nullable: true
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCallInfo"
+          nullable: true
+        tool_call_id:
+          type: string
+          nullable: true
+        tool_name:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message

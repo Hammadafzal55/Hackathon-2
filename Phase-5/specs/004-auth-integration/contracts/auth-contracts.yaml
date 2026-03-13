@@ -1,0 +1,332 @@
+# API Contracts: Authentication Integration for Todo Application
+
+## Overview
+API contracts for authentication integration using Better Auth with JWT-based verification and Better Auth–managed database tables. These contracts define the authentication endpoints and their interactions with the existing task management system.
+
+## Authentication Endpoints
+
+### User Registration Endpoint
+```
+POST /api/auth/register
+```
+
+**Interface Definition**:
+```
+registerUser(request: {
+  email: string,
+  password: string,
+  name: string
+}): {
+  success: boolean,
+  user: User,
+  token: string,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Creates a new user account using Better Auth (FR-001)
+- Returns JWT token upon successful registration (FR-003)
+- Stores user data in Better Auth managed tables (FR-011)
+- Returns appropriate error messages for invalid input
+
+**Input Validation**:
+- `email` must be a valid email format
+- `password` must meet strength requirements
+- `name` must be non-empty
+- Email must be unique
+
+**Response Format**:
+- 200: Successful registration with user data and token
+- 400: Invalid input data
+- 409: Email already exists
+
+### User Login Endpoint
+```
+POST /api/auth/login
+```
+
+**Interface Definition**:
+```
+loginUser(request: {
+  email: string,
+  password: string
+}): {
+  success: boolean,
+  user: User,
+  token: string,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Authenticates user with provided credentials (FR-002)
+- Returns JWT token upon successful authentication (FR-003)
+- Updates session information in Better Auth tables
+- Returns appropriate error messages for invalid credentials
+
+**Input Validation**:
+- `email` must be a valid email format
+- `password` must be provided
+- Credentials must match existing user
+
+**Response Format**:
+- 200: Successful login with user data and token
+- 400: Invalid input data
+- 401: Invalid credentials
+
+### User Logout Endpoint
+```
+POST /api/auth/logout
+```
+
+**Interface Definition**:
+```
+logoutUser(request: {
+  token: string
+}): {
+  success: boolean,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Invalidates the current user session (FR-008)
+- Removes token from active sessions
+- Returns success confirmation
+
+**Input Validation**:
+- `token` must be a valid JWT token
+
+**Response Format**:
+- 200: Successful logout
+- 401: Invalid or expired token
+
+## Protected Task Endpoints
+
+### Get User Tasks
+```
+GET /api/{user_id}/tasks
+```
+
+**Interface Definition**:
+```
+getUserTasks(request: {
+  user_id: string,
+  token: string
+}): {
+  success: boolean,
+  tasks: Task[],
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Verifies JWT token signature (FR-004)
+- Extracts user ID from JWT claims and validates against requested resource ownership (FR-005)
+- Filters tasks by authenticated user ID (FR-009, FR-006)
+- Returns only tasks that belong to the authenticated user
+
+**Input Validation**:
+- `token` must be a valid JWT token
+- `user_id` in URL must match user ID in token (ownership validation)
+
+**Response Format**:
+- 200: Array of tasks belonging to the user
+- 401: Invalid or missing token
+- 403: User ID mismatch (attempting to access other user's tasks)
+
+### Create Task
+```
+POST /api/{user_id}/tasks
+```
+
+**Interface Definition**:
+```
+createUserTask(request: {
+  user_id: string,
+  token: string,
+  taskData: {
+    title: string,
+    description?: string,
+    priority: number,
+    due_date?: string
+  }
+}): {
+  success: boolean,
+  task: Task,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Verifies JWT token signature (FR-004)
+- Ensures user can only create tasks for their own account (FR-006)
+- Validates task data before creation
+- Returns created task with ownership information
+
+**Input Validation**:
+- `token` must be a valid JWT token
+- `user_id` in URL must match user ID in token
+- `title` must be provided
+- `priority` must be within valid range
+
+**Response Format**:
+- 201: Successfully created task
+- 401: Invalid or missing token
+- 403: User ID mismatch
+- 400: Invalid task data
+
+### Update Task
+```
+PUT /api/{user_id}/tasks/{task_id}
+```
+
+**Interface Definition**:
+```
+updateUserTask(request: {
+  user_id: string,
+  task_id: string,
+  token: string,
+  taskData: {
+    title?: string,
+    description?: string,
+    priority?: number,
+    due_date?: string,
+    status?: string
+  }
+}): {
+  success: boolean,
+  task: Task,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Verifies JWT token signature (FR-004)
+- Ensures user can only update their own tasks (FR-006)
+- Validates task ownership before update
+- Returns updated task with ownership information
+
+**Input Validation**:
+- `token` must be a valid JWT token
+- `user_id` in URL must match user ID in token
+- `task_id` must exist and belong to the user
+- Updated data must be valid
+
+**Response Format**:
+- 200: Successfully updated task
+- 401: Invalid or missing token
+- 403: User ID or task ownership mismatch
+- 400: Invalid task data
+
+### Delete Task
+```
+DELETE /api/{user_id}/tasks/{task_id}
+```
+
+**Interface Definition**:
+```
+deleteUserTask(request: {
+  user_id: string,
+  task_id: string,
+  token: string
+}): {
+  success: boolean,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Verifies JWT token signature (FR-004)
+- Ensures user can only delete their own tasks (FR-006)
+- Validates task ownership before deletion
+- Returns success confirmation
+
+**Input Validation**:
+- `token` must be a valid JWT token
+- `user_id` in URL must match user ID in token
+- `task_id` must exist and belong to the user
+
+**Response Format**:
+- 200: Successfully deleted task
+- 401: Invalid or missing token
+- 403: User ID or task ownership mismatch
+- 404: Task not found
+
+## JWT Token Validation Contract
+
+### Token Verification Interface
+```
+verifyToken(token: string, secret: string): {
+  isValid: boolean,
+  userId?: string,
+  email?: string,
+  error?: string
+}
+```
+
+**Expected Behavior**:
+- Verifies token signature using shared secret (FR-004)
+- Extracts user ID from JWT claims (FR-005)
+- Checks token expiration
+- Returns user identity information
+
+**Input Validation**:
+- `token` must be a properly formatted JWT
+- `secret` must match the one used to sign the token
+
+**Response Format**:
+- Success: Valid token with user ID and email
+- Failure: Invalid token with error message
+
+## Error Response Contract
+
+### Standard Error Format
+All authentication and authorization errors follow this format:
+```
+{
+  "success": false,
+  "error": "Error message describing the issue",
+  "errorCode": "AUTH_ERROR_CODE"
+}
+```
+
+**Error Codes**:
+- `INVALID_TOKEN`: Provided token is invalid or malformed
+- `TOKEN_EXPIRED`: Provided token has expired
+- `UNAUTHORIZED_ACCESS`: User doesn't have permission for the requested resource
+- `USER_MISMATCH`: Requested user ID doesn't match token user ID
+- `INVALID_CREDENTIALS`: Provided credentials are incorrect
+- `EMAIL_EXISTS`: Attempting to register with an existing email
+- `RATE_LIMITED`: Too many authentication attempts
+
+## Security Requirements
+
+### Authentication Enforcement
+All protected endpoints must:
+- Require valid JWT token in Authorization header
+- Return 401 Unauthorized for requests without token (FR-007)
+- Return 401/403 for requests with invalid token (FR-007)
+- Match token user ID with request user_id (FR-005)
+
+### Data Isolation
+All task operations must:
+- Filter data by authenticated user ID (FR-009)
+- Prevent cross-account access (FR-014)
+- Enforce ownership on all operations (FR-006)
+- Return only user's own data
+
+## Performance Requirements
+
+### Token Validation
+- JWT validation must complete in under 100ms
+- Token extraction and user ID validation must be efficient
+- Caching mechanisms should be used where appropriate
+- Concurrent token validation must be supported
+
+### API Response Times
+- Authentication operations under 2 seconds
+- Task operations under 1 second (with authentication overhead)
+- Session validation should not significantly impact performance
+- Database queries should be optimized with proper indexing

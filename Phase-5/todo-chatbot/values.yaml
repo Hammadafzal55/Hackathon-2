@@ -28,6 +28,9 @@ frontend:
     BETTER_AUTH_SECRET: "REPLACE_IN_VALUES_LOCAL"
     DATABASE_URL: "REPLACE_IN_VALUES_LOCAL"
     NEXT_PUBLIC_OPENAI_DOMAIN_KEY: "REPLACE_IN_VALUES_LOCAL"
+    BETTER_AUTH_SECRET: ""
+    DATABASE_URL: ""
+    NEXT_PUBLIC_OPENAI_DOMAIN_KEY: ""
 
   livenessProbe:
     tcpSocket:
@@ -73,6 +76,11 @@ backend:
     JWT_SECRET_KEY: "REPLACE_IN_VALUES_LOCAL"
     AI_MODEL: "z-ai/glm-4.5-air:free"
     AI_API_KEY: "REPLACE_IN_VALUES_LOCAL"
+    DATABASE_URL: ""
+    BETTER_AUTH_SECRET: ""
+    JWT_SECRET_KEY: ""
+    AI_MODEL: "z-ai/glm-4.5-air:free"
+    AI_API_KEY: ""
     AI_BASE_URL: "https://openrouter.ai/api/v1"
     CHAT_CONTEXT_WINDOW: "50"
     CHAT_MAX_MESSAGE_LENGTH: "4000"

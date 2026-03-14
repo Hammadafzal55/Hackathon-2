@@ -31,6 +31,9 @@ description: "Task list for authentication integration implementation"
 - [X] T001 [P] Install Better Auth dependencies in frontend/package.json
 - [X] T002 [P] Install JWT verification dependencies in backend/requirements.txt
 - [X] T003 [P] Set up BETTER_AUTH_SECRET environment variable configuration in both frontend and backend
+- [x] T001 [P] Install Better Auth dependencies in frontend/package.json
+- [x] T002 [P] Install JWT verification dependencies in backend/requirements.txt
+- [x] T003 [P] Set up BETTER_AUTH_SECRET environment variable configuration in both frontend and backend
 
 ---
 
@@ -47,6 +50,13 @@ description: "Task list for authentication integration implementation"
 - [X] T008 Configure Better Auth to work with existing user table by mapping field names (email, username, etc.) to match existing schema
 - [X] T009 Update existing user model in backend/src/models/user.py to be compatible with Better Auth requirements
 - [X] T010 Add additional fields to existing user model as needed for Better Auth compatibility
+- [x] T004 Configure Better Auth to use Neon PostgreSQL database with existing user table
+- [x] T005 [P] Set up Better Auth client configuration in frontend/src/lib/auth.ts with custom user schema mapping
+- [x] T006 [P] Create JWT verification middleware in backend/src/middleware/auth.py
+- [x] T007 Create shared secret configuration between frontend and backend
+- [x] T008 Configure Better Auth to work with existing user table by mapping field names (email, username, etc.) to match existing schema
+- [x] T009 Update existing user model in backend/src/models/user.py to be compatible with Better Auth requirements
+- [x] T010 Add additional fields to existing user model as needed for Better Auth compatibility
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -69,6 +79,15 @@ description: "Task list for authentication integration implementation"
 - [X] T017 [US1] Implement user login endpoint POST /api/auth/login in backend/src/api/routes/auth.py
 - [X] T018 [US1] Create login form component in frontend/src/components/Auth/SignIn.tsx
 - [X] T019 [US1] Add login logic to Better Auth client in frontend/src/lib/auth.ts with existing user table integration
+- [x] T011 [P] [US1] Create Session model in backend/src/models/session.py (Better Auth managed)
+- [x] T012 [US1] Implement user registration endpoint POST /api/auth/register in backend/src/api/routes/auth.py
+- [x] T013 [US1] Add registration validation and error handling
+- [x] T014 [US1] Create registration form component in frontend/src/components/Auth/SignUp.tsx
+- [x] T015 [US1] Add registration logic to Better Auth client in frontend/src/lib/auth.ts with existing user table integration
+- [x] T016 [US1] Store JWT token in frontend state/local storage
+- [x] T017 [US1] Implement user login endpoint POST /api/auth/login in backend/src/api/routes/auth.py
+- [x] T018 [US1] Create login form component in frontend/src/components/Auth/SignIn.tsx
+- [x] T019 [US1] Add login logic to Better Auth client in frontend/src/lib/auth.ts with existing user table integration
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -91,6 +110,15 @@ description: "Task list for authentication integration implementation"
 - [X] T026 [US2] Add user ID validation against token claims in task endpoints
 - [X] T027 [US2] Update all task endpoints to enforce user ownership validation
 - [X] T028 [US2] Add proper error handling for unauthorized access (401/403 responses)
+- [x] T020 [P] [US2] Implement user logout endpoint POST /api/auth/logout in backend/src/api/routes/auth.py
+- [x] T021 [P] [US2] Create logout functionality in frontend/src/lib/auth.ts with existing user table integration
+- [x] T022 [US2] Update JWT verification middleware to extract user ID from token claims
+- [x] T023 [US2] Create authentication provider wrapper in frontend/src/providers/AuthProvider.tsx
+- [x] T024 [US2] Update API client to attach JWT token to all requests in frontend/src/lib/api.ts
+- [x] T025 [US2] Update task endpoints to require valid JWT token in backend/src/api/routes/tasks.py
+- [x] T026 [US2] Add user ID validation against token claims in task endpoints
+- [x] T027 [US2] Update all task endpoints to enforce user ownership validation
+- [x] T028 [US2] Add proper error handling for unauthorized access (401/403 responses)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -112,6 +140,14 @@ description: "Task list for authentication integration implementation"
 - [X] T034 [US3] Add token expiration handling and refresh logic
 - [X] T035 [US3] Update database queries to filter by authenticated user ID
 - [X] T036 [US3] Add proper error displays for authentication failures
+- [x] T029 [P] [US3] Update all task endpoints to filter by authenticated user ID from existing user table
+- [x] T030 [P] [US3] Implement user ID validation in all task operations (GET, POST, PUT, DELETE) using existing user table integration
+- [x] T031 [US3] Create authentication state management hook in frontend/src/hooks/useAuth.ts
+- [x] T032 [US3] Update header UI to reflect authenticated state in frontend/src/components/Header/AuthAwareHeader.tsx
+- [x] T033 [US3] Implement UI toggling between authenticated/unauthenticated states
+- [x] T034 [US3] Add token expiration handling and refresh logic
+- [x] T035 [US3] Update database queries to filter by authenticated user ID
+- [x] T036 [US3] Add proper error displays for authentication failures
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -129,6 +165,14 @@ description: "Task list for authentication integration implementation"
 - [X] T042 Run quickstart.md validation for authentication flows
 - [X] T043 Update frontend UI to show authenticated state and user information
 - [X] T044 Add proper error displays for authentication failures
+- [x] T037 [P] Update documentation with authentication patterns in docs/auth.md
+- [x] T038 Code cleanup and refactoring of authentication components
+- [x] T039 Performance optimization for JWT validation (ensure under 100ms)
+- [x] T040 [P] Additional unit tests for authentication flows in tests/unit/
+- [x] T041 Security hardening and validation
+- [x] T042 Run quickstart.md validation for authentication flows
+- [x] T043 Update frontend UI to show authenticated state and user information
+- [x] T044 Add proper error displays for authentication failures
 
 ---
 

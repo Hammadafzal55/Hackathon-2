@@ -1,0 +1,25 @@
+# =============================================================================
+# values-local.yaml — Local override for real secrets (NEVER COMMIT THIS FILE)
+# Copy this to values-local.yaml and fill in your actual values.
+# .gitignore already excludes values-local.yaml
+# =============================================================================
+
+secrets:
+  databaseUrl: "postgresql://user:password@host/db?sslmode=require"
+  betterAuthSecret: "your-better-auth-secret-here"
+  jwtSecretKey: "your-jwt-secret-key-here"
+  aiApiKey: "your-openrouter-api-key-here"
+  redisPassword: ""   # Leave empty — Redis auth is disabled for local dev
+
+# Optional: override backend env to remove hardcoded secrets from values.yaml
+backend:
+  env:
+    DATABASE_URL: "postgresql://user:password@host/db?sslmode=require"
+    BETTER_AUTH_SECRET: "your-better-auth-secret-here"
+    JWT_SECRET_KEY: "your-jwt-secret-key-here"
+    AI_API_KEY: "your-openrouter-api-key-here"
+
+frontend:
+  env:
+    DATABASE_URL: "postgresql://user:password@host/db?sslmode=require"
+    BETTER_AUTH_SECRET: "your-better-auth-secret-here"

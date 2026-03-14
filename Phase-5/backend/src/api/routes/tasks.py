@@ -125,7 +125,7 @@ async def get_tasks(
         tasks = result.scalars().all()
 
         logger.info(f"Retrieved {len(tasks)} tasks (total={total_count}) for user {current_user_id}")
-        return {"tasks": tasks, "total_count": total_count}
+        return {"tasks": [TaskRead.model_validate(t) for t in tasks], "total_count": total_count}
 
     except Exception as e:
         logger.error(f"Error retrieving tasks for user {current_user_id}: {str(e)}", exc_info=True)
@@ -151,7 +151,7 @@ async def get_task(
         if not task:
             raise TodoNotFoundException(str(task_id))
 
-        return task
+        return TaskRead.model_validate(task)
     except TodoNotFoundException:
         raise
     except Exception as e:
@@ -191,6 +191,11 @@ async def create_task(
         await session.commit()
         await session.refresh(db_task)
 
+        # Fire any reminders whose fire_at is already in the past (works without Dapr)
+        if task.reminders:
+            from src.services.reminder_service import check_due_reminders
+            await check_due_reminders(session)
+
         # Publish event (non-blocking)
         await publish_task_event(
             event_type="task.created",
@@ -201,7 +206,7 @@ async def create_task(
         )
 
         logger.info(f"Created task {db_task.id} for user {current_user_id}")
-        return db_task
+        return TaskRead.model_validate(db_task)
     except Exception as e:
         logger.error(f"Error creating task: {str(e)}", exc_info=True)
         raise
@@ -261,7 +266,7 @@ async def update_task(
         )
 
         logger.info(f"Updated task {task_id} for user {current_user_id}")
-        return db_task
+        return TaskRead.model_validate(db_task)
     except TodoNotFoundException:
         raise
     except Exception as e:
@@ -345,7 +350,7 @@ async def toggle_task_completion(
         )
 
         logger.info(f"Toggled task {task_id} to {db_task.status} for user {current_user_id}")
-        return db_task
+        return TaskRead.model_validate(db_task)
     except TodoNotFoundException:
         raise
     except Exception as e:

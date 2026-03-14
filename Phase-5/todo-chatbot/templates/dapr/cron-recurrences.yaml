@@ -1,0 +1,15 @@
+# Dapr Cron Binding — fires POST /cron/generate-recurrences every 5 minutes
+# Generates upcoming instances for recurring tasks
+{{- if .Values.dapr.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: generate-recurrences-cron
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    - name: schedule
+      value: "@every 300s"
+{{- end }}

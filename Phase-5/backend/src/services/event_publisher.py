@@ -49,4 +49,4 @@ async def publish_task_event(
             )
         logger.info(f"Published {event_type} event for task {task_id}")
     except Exception as e:
-        logger.warning(f"Dapr unavailable, event not published: {e}")
+        logger.debug(f"Dapr unavailable, event not published: {e}")

@@ -97,3 +97,6 @@ static/build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Helm local secrets override (NEVER commit real secrets)
+todo-chatbot/values-local.yaml
+todo-chatbot/charts/

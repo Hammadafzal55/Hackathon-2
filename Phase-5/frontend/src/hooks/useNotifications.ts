@@ -18,20 +18,25 @@ export const useNotifications = (): NotificationsState => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const inflightRef = useRef(false);
 
   const fetchNotifications = useCallback(async () => {
+    if (inflightRef.current) return;
+    inflightRef.current = true;
     try {
       const data = await apiClient.getNotifications(undefined, 20, 0);
       setNotifications(data.notifications);
       setUnreadCount(data.unread_count);
     } catch (err) {
       console.warn('Failed to fetch notifications:', err);
+    } finally {
+      inflightRef.current = false;
     }
   }, []);
 
   useEffect(() => {
     fetchNotifications();
-    intervalRef.current = setInterval(fetchNotifications, 30000);
+    intervalRef.current = setInterval(fetchNotifications, 60000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };

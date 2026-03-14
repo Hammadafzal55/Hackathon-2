@@ -1,0 +1,20 @@
+# Zipkin Service — ClusterIP for Dapr tracing export + optional port-forward
+{{- if .Values.zipkin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: zipkin
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.zipkin.service.port }}
+      targetPort: 9411
+      protocol: TCP
+      name: http
+  selector:
+    app: zipkin
+{{- end }}

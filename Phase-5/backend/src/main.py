@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from .database.init import initialize_database
-from .api.routes import tasks, chat, reminders, notifications, tags, dapr_events
+from .api.routes import tasks, chat, reminders, notifications, tags, dapr_events, dapr_invoke
+from .services.secrets_loader import load_secrets
 from .config import get_settings
 from .exceptions import add_exception_handlers
 from .services.mcp_server import initialize_mcp_server
@@ -26,6 +27,9 @@ async def lifespan(app: FastAPI):
     Runs startup and shutdown events.
     """
     logger.info("Starting up the application...")
+
+    # Load secrets from Dapr Secrets Store (falls back to env vars if unavailable)
+    await load_secrets()
 
     # Initialize database on startup
     try:
@@ -85,6 +89,7 @@ app.include_router(reminders.router, prefix="/api", tags=["reminders"])
 app.include_router(notifications.router, prefix="/api", tags=["notifications"])
 app.include_router(tags.router, prefix="/api", tags=["tags"])
 app.include_router(dapr_events.router, tags=["dapr"])
+app.include_router(dapr_invoke.router, prefix="/api", tags=["dapr"])
 
 
 @app.get("/")

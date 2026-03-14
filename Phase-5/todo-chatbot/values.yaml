@@ -25,6 +25,9 @@ frontend:
     NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:8000"
     BETTER_AUTH_URL: "http://localhost:3000"
     NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+    BETTER_AUTH_SECRET: "REPLACE_IN_VALUES_LOCAL"
+    DATABASE_URL: "REPLACE_IN_VALUES_LOCAL"
+    NEXT_PUBLIC_OPENAI_DOMAIN_KEY: "REPLACE_IN_VALUES_LOCAL"
     BETTER_AUTH_SECRET: ""
     DATABASE_URL: ""
     NEXT_PUBLIC_OPENAI_DOMAIN_KEY: ""
@@ -68,6 +71,11 @@ backend:
     nodePort: 30800
 
   env:
+    DATABASE_URL: "REPLACE_IN_VALUES_LOCAL"
+    BETTER_AUTH_SECRET: "REPLACE_IN_VALUES_LOCAL"
+    JWT_SECRET_KEY: "REPLACE_IN_VALUES_LOCAL"
+    AI_MODEL: "z-ai/glm-4.5-air:free"
+    AI_API_KEY: "REPLACE_IN_VALUES_LOCAL"
     DATABASE_URL: ""
     BETTER_AUTH_SECRET: ""
     JWT_SECRET_KEY: ""
@@ -126,6 +134,55 @@ autoscaling:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# ---------------------------------------------------------------------------
+# REDIS (Bitnami subchart — Dapr Pub/Sub and State Store backend)
+# ---------------------------------------------------------------------------
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false        # No password for local dev simplicity
+  master:
+    persistence:
+      enabled: false      # Ephemeral — local dev only
+
+# ---------------------------------------------------------------------------
+# ZIPKIN (Distributed tracing for Dapr Service Invocation)
+# ---------------------------------------------------------------------------
+zipkin:
+  enabled: true
+  image:
+    repository: openzipkin/zipkin
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 9411
+
+# ---------------------------------------------------------------------------
+# DAPR (Sidecar configuration — annotations applied to backend pod)
+# ---------------------------------------------------------------------------
+dapr:
+  enabled: true
+  appId: flowtodo-backend
+  appPort: "8000"
+  logLevel: info
+  config: appconfig
+
+# ---------------------------------------------------------------------------
+# SECRETS (Populated via values-local.yaml — NEVER commit real values here)
+# ---------------------------------------------------------------------------
+secrets:
+  databaseUrl: "REPLACE_IN_VALUES_LOCAL"
+  betterAuthSecret: "REPLACE_IN_VALUES_LOCAL"
+  jwtSecretKey: "REPLACE_IN_VALUES_LOCAL"
+  aiApiKey: "REPLACE_IN_VALUES_LOCAL"
+  redisPassword: ""
+
+# ---------------------------------------------------------------------------
+# HELM CHART VERSION
+# ---------------------------------------------------------------------------
+chartVersion: "0.2.0"
 
 # Ingress — disabled by default for local minikube
 ingress:

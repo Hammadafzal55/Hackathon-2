@@ -45,12 +45,15 @@ async def handle_task_event(request: Request):
 
 
 @router.post("/cron/generate-recurrences")
+@router.post("/generate-recurrences-cron")  # Dapr binding route: POST /{component-name}
 async def cron_generate_recurrences(
     session: AsyncSession = Depends(get_async_session),
 ):
     """
     Dapr cron binding handler: called every 5 minutes.
     Generates new task instances for due recurring tasks.
+    Registered at both /cron/generate-recurrences (manual) and
+    /generate-recurrences-cron (Dapr binding invocation).
     """
     try:
         from src.services.recurrence_service import generate_due_recurrences
@@ -63,12 +66,15 @@ async def cron_generate_recurrences(
 
 
 @router.post("/cron/check-reminders")
+@router.post("/check-reminders-cron")  # Dapr binding route: POST /{component-name}
 async def cron_check_reminders(
     session: AsyncSession = Depends(get_async_session),
 ):
     """
-    Dapr cron binding handler: called every 5 minutes.
+    Dapr cron binding handler: called every 60 seconds.
     Checks for due reminders and creates notifications.
+    Registered at both /cron/check-reminders (manual) and
+    /check-reminders-cron (Dapr binding invocation).
     """
     try:
         from src.services.reminder_service import check_due_reminders

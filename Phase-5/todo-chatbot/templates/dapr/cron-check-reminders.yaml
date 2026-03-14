@@ -1,0 +1,15 @@
+# Dapr Cron Binding — fires POST /cron/check-reminders every 60 seconds
+# Handles reminder delivery: marks pending reminders as sent, creates notifications
+{{- if .Values.dapr.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: check-reminders-cron
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    - name: schedule
+      value: "@every 60s"
+{{- end }}

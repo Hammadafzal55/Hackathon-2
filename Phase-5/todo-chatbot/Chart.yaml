@@ -10,7 +10,7 @@ description: >
 type: application
 
 # Chart version — increment on every chart change
-version: 0.1.0
+version: 0.2.0
 
 # Application version
 appVersion: "1.0.0"
@@ -29,6 +29,12 @@ home: https://github.com/your-org/todo-chatbot
 maintainers:
   - name: Hackathon Team
     email: team@example.com
+
+dependencies:
+  - name: redis
+    version: "20.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
 
 annotations:
   category: FullStack

@@ -1,0 +1,23 @@
+# Dapr Pub/Sub Component — Redis-backed message broker for task events
+# Used by event_publisher.py (PUBSUB_NAME=pubsub) and dapr_events.py subscriber
+{{- if .Values.dapr.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
+    - name: redisPassword
+      secretKeyRef:
+        name: flowtodo-secrets
+        key: redis-password
+    - name: consumerID
+      value: {{ .Values.dapr.appId | quote }}
+    - name: enableTLS
+      value: "false"
+{{- end }}

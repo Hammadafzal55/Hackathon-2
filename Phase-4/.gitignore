@@ -97,3 +97,5 @@ static/build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Helm local secrets (never commit)
+todo-chatbot/values.local.yaml

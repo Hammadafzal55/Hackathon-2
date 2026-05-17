@@ -27,20 +27,11 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password, firstName, lastName, username);
-
-      // Reset the form fields
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setFirstName('');
-      setLastName('');
-      setUsername('');
-
-      // Redirect to login page after successful signup
+      setEmail(''); setPassword(''); setConfirmPassword('');
+      setFirstName(''); setLastName(''); setUsername('');
       router.push('/auth/login');
-    } catch (err) {
-      setError('Registration failed. Please check your information.');
-      console.error('Signup error:', err);
+    } catch (err: any) {
+      setError(err?.message || 'Registration failed. Please try again.');
     }
   };
 

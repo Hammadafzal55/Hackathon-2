@@ -1,0 +1,8 @@
+# Build on top of existing Phase-4 image — avoids Docker Hub pull
+FROM hackathon-backend:latest
+WORKDIR /app
+# Copy updated requirements (adds dapr package)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+# Replace source with Phase-5 code
+COPY src/ ./src/

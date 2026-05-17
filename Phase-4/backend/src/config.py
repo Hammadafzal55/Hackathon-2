@@ -29,8 +29,12 @@ class Settings(BaseSettings):
     # Better Auth settings
     better_auth_secret: str = Field(alias="BETTER_AUTH_SECRET")
 
-    # CORS settings
-    allowed_origins: List[str] = ["http://localhost:3000", "https://your-deployment-url.vercel.app"]
+    # CORS settings — override via ALLOWED_ORIGINS env var (JSON array string)
+    # Example: ALLOWED_ORIGINS='["http://localhost:3000","http://192.168.49.2:30300"]'
+    allowed_origins: List[str] = Field(
+        default=["http://localhost:3000", "https://your-deployment-url.vercel.app"],
+        alias="ALLOWED_ORIGINS",
+    )
 
     # Other application settings
     api_prefix: str = "/api"

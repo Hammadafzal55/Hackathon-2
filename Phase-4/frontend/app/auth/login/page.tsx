@@ -25,10 +25,8 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-      // Redirect is handled by Better Auth via callbackURL in AuthProvider
-    } catch (err) {
-      setError('Login failed. Please check your credentials.');
-      console.error('Login error:', err);
+    } catch (err: any) {
+      setError(err?.message || 'Login failed. Please try again.');
     }
   };
 

@@ -1,7 +1,28 @@
 # Verification Guide: Dapr Minikube Deployment
 
 **Feature**: 009-dapr-minikube-deploy
-**Status**: Implementation complete — manual verification required after `bash scripts/deploy.sh`
+**Status**: ✅ VERIFIED 2026-03-29 — All 5 Dapr building blocks confirmed on Minikube v1.38.1 / Kubernetes v1.35.1 / Dapr v1.17.3
+
+---
+
+## Actual Verification Results (2026-03-29)
+
+| Building Block | Component | Result |
+|----------------|-----------|--------|
+| US1 Sidecar Injection | daprd:1.17.3 | ✅ PASS — backend shows `2/2 Running` |
+| US2 State Store | statestore (Redis) | ✅ PASS — write+read `"dapr-works"` |
+| US3 Pub/Sub | pubsub (Redis) | ✅ PASS — published to `task-events`, HTTP 204 |
+| Cron Bindings | check-reminders-cron, generate-recurrences-cron | ✅ PASS — both registered in Dapr runtime |
+| US4 Secrets Store | kubernetes (K8s built-in) | ✅ PASS — all 5 secret keys read from `flowtodo-secrets` |
+| US5 Service Invocation | flowtodo-backend | ✅ PASS — `invoke/flowtodo-backend/method/health` → 200 |
+
+**Fixes applied during verification:**
+- Replaced Bitnami Redis subchart (Docker Hub OCI blocked in WSL) with inline `redis:7-alpine` template
+- Disabled duplicate `kubernetes` secretstore component (Dapr K8s auto-registers one)
+- Added `rbac.yaml` Role + RoleBinding for secret read access
+- Loaded `redis:7-alpine` and `openzipkin/zipkin` via `minikube image load` from host Docker
+
+---
 
 ---
 

@@ -76,23 +76,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const handleSignIn = async (email: string, password: string) => {
-    try {
-      const result = await authClient.signIn.email({
-        email,
-        password,
-        callbackURL: "/tasks", // Redirect to tasks after sign in
-      });
+    const result = await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: "/tasks",
+    });
 
-      if (result?.data?.user) {
-        // Simply set the user from Better Auth session - no backend verification needed
-        setUser(result.data.user as unknown as User);
+    if (result?.error) {
+      const status = result.error.status;
+      const code = result.error.code;
+      if (status === 401 || code === 'INVALID_EMAIL_OR_PASSWORD') {
+        throw new Error('Invalid email or password.');
+      } else if (status === 403) {
+        throw new Error('Access denied. Please try again or clear your cookies.');
+      } else if (status === 429) {
+        throw new Error('Too many attempts. Please wait a moment and try again.');
+      } else if (!navigator.onLine) {
+        throw new Error('Network error. Please check your connection.');
+      } else {
+        throw new Error(result.error.message || 'Sign in failed. Please try again.');
       }
-
-      return result;
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
     }
+
+    if (result?.data?.user) {
+      setUser(result.data.user as unknown as User);
+    }
+
+    return result;
   };
 
   const handleSignOut = async () => {
@@ -113,23 +123,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const handleSignUp = async (email: string, password: string, firstName: string, lastName: string, username: string) => {
-    try {
-      // Combine firstName and lastName into the name field
-      const fullName = `${firstName} ${lastName}`.trim();
-      const result = await authClient.signUp.email({
-        email,
-        password,
-        name: fullName, // Use the standard 'name' field
-        callbackURL: "/auth/login", // Redirect to login after sign up
-      });
-      if (result?.data?.user) {
-        setUser(result.data.user as unknown as User);
+    const fullName = `${firstName} ${lastName}`.trim();
+    const result = await authClient.signUp.email({
+      email,
+      password,
+      name: fullName,
+      callbackURL: "/auth/login",
+    });
+
+    if (result?.error) {
+      const status = result.error.status;
+      const code = result.error.code;
+      if (status === 422 || code === 'USER_ALREADY_EXISTS') {
+        throw new Error('An account with this email already exists.');
+      } else if (status === 400) {
+        throw new Error('Invalid details. Please check your email and password (min 8 characters).');
+      } else if (!navigator.onLine) {
+        throw new Error('Network error. Please check your connection.');
+      } else {
+        throw new Error(result.error.message || 'Registration failed. Please try again.');
       }
-      return result;
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
     }
+
+    if (result?.data?.user) {
+      setUser(result.data.user as unknown as User);
+    }
+    return result;
   };
 
   const getCurrentSession = async (): Promise<{ user: User } | null> => {

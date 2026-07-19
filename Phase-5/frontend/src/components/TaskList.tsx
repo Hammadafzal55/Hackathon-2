@@ -53,7 +53,7 @@ const TaskList: React.FC<TaskListProps> = ({
     });
   };
 
-  const handleSortChange = (sort_by: string, sort_dir: string) => {
+  const handleSortChange = (sort_by: string, sort_dir: 'asc' | 'desc') => {
     if (!onFilterChange) return;
     onFilterChange({ ...filterParams, sort_by, sort_dir });
   };
@@ -67,6 +67,13 @@ const TaskList: React.FC<TaskListProps> = ({
     due_after: filterParams?.due_after || '',
   };
 
+  // Validate and cast sortDir to literal type
+  const validSortDir = (dir: any): dir is 'asc' | 'desc' => {
+    return dir === 'asc' || dir === 'desc';
+  };
+
+  const sortDir = validSortDir(filterParams?.sort_dir) ? filterParams.sort_dir : 'desc';
+
   if (loading) {
     return (
       <div>
@@ -75,7 +82,7 @@ const TaskList: React.FC<TaskListProps> = ({
             <div className="flex flex-wrap gap-3 items-center">
               <div className="flex-1 min-w-48"><SearchBar value={filterParams?.search || ''} onChange={handleSearch} /></div>
               <FilterPanel filters={currentFilters} onChange={handleFilterChange} />
-              <SortControl sortBy={filterParams?.sort_by || 'created_at'} sortDir={filterParams?.sort_dir || 'desc'} onChange={handleSortChange} />
+              <SortControl sortBy={filterParams?.sort_by || 'created_at'} sortDir={sortDir} onChange={handleSortChange} />
             </div>
           </div>
         )}
@@ -104,7 +111,7 @@ const TaskList: React.FC<TaskListProps> = ({
               <SearchBar value={filterParams?.search || ''} onChange={handleSearch} />
             </div>
             <FilterPanel filters={currentFilters} onChange={handleFilterChange} />
-            <SortControl sortBy={filterParams?.sort_by || 'created_at'} sortDir={filterParams?.sort_dir || 'desc'} onChange={handleSortChange} />
+            <SortControl sortBy={filterParams?.sort_by || 'created_at'} sortDir={sortDir} onChange={handleSortChange} />
           </div>
         </div>
       )}
@@ -112,8 +119,8 @@ const TaskList: React.FC<TaskListProps> = ({
       {tasks.length === 0 ? (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2[...]
+            </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No tasks</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{emptyMessage}</p>
         </div>
